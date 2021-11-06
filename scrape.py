@@ -57,16 +57,14 @@ if __name__ == "__main__":
     usable_repos = 0
 
     if args.shard is not None:
-        assert not args.start_id
         assert not args.descending
         start_id = (APPROX_MAX_ID // args.num_shards) * args.shard
         end_id = (APPROX_MAX_ID // args.num_shards) * (args.shard + 1)
-    elif args.start_id:
-        start_id = args.start_id
-        end_id = None
     else:
         start_id = None
         end_id = None
+    if args.start_id:
+        start_id = args.start_id
 
     print(f"scraping ids {start_id} -- {end_id}")
 
@@ -83,7 +81,12 @@ if __name__ == "__main__":
             if start_id is not None:
                 params['id_before'] = int(start_id) - 1
         first = False
-        projects = gl.projects.list(**params)
+        try:
+            projects = gl.projects.list(**params)
+        except:
+            start_id += 1
+            continue
+
         if not bool(projects):
             break
         for project in projects:
