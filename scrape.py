@@ -17,6 +17,8 @@ import argparse
 
 APPROX_MAX_ID = 32_000_000
 
+csv_columns = ['id', 'url', 'stars', 'license', 'main_language', 'is_fork', 'last_activity_at', 'tags', 'languages']
+
 if __name__ == "__main__":
     print(' '.join(sys.argv))
     parser = argparse.ArgumentParser()
@@ -26,6 +28,7 @@ if __name__ == "__main__":
     parser.add_argument("--start_id", type=int)
     parser.add_argument("--shard", type=int)
     parser.add_argument("--num_shards", type=int, default=10)
+    parser.add_argument("--language", default='Python')
 
     args = parser.parse_args()
     pprint.pprint(vars(args))
@@ -49,8 +52,7 @@ if __name__ == "__main__":
     #it = tqdm.tqdm(it, ncols=80)
 
     csv_file = open(out_fname, 'w')
-    csv_writer = csv.DictWriter(csv_file, ['id', 'url', 'stars', 'license', 'main_language', 'is_fork', 'last_activity_at', 'tags', 'languages'])
-
+    csv_writer = csv.DictWriter(csv_file, csv_columns)
     csv_writer.writeheader()
 
     repo_count = 0
@@ -71,7 +73,7 @@ if __name__ == "__main__":
     first = True
 
     while True:
-        params = dict(page=1, per_page=limit, with_programming_language='python', license=True, as_list=True, order_by="id")
+        params = dict(page=1, per_page=limit, with_programming_language=args.language.lower(), license=True, as_list=True, order_by="id")
         if not args.descending:
             params['sort'] = "asc"
             if start_id is not None:
@@ -138,7 +140,7 @@ if __name__ == "__main__":
                 license_counts[license] += 1
                 is_fork_counts[is_fork] += 1
 
-                is_usable = (license in {'mit', 'apache-2.0', 'bsd-2-clause', 'bsd-3-clause'}) and (not is_fork) and (main_language == 'Python')
+                is_usable = (license in {'mit', 'apache-2.0', 'bsd-2-clause', 'bsd-3-clause'}) and (not is_fork) and (main_language == args.language)
                 if is_usable:
                     usable_repos += 1
                 repo_count += 1
